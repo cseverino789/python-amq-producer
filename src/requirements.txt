@@ -1,0 +1,2 @@
+python-qpid-proton==0.24.0
+elasticsearch>=6.0.0,<7.0.0
