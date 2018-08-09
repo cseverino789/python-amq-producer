@@ -55,10 +55,9 @@ class Send(MessagingHandler):
 
 parser = optparse.OptionParser(usage="usage: %prog [options]",
                                description="Send messages to the supplied address.")
-parser.add_option("-a", "--address",
-                  help="address to which messages are sent (default %default)")
-parser.add_option("-m", "--messages", type="int", default=100,
-                  help="number of messages to send (default %default)")
+parser.add_option("-a", "--address", help="address to which messages are sent (default %default)")
+parser.add_option("-m", "--messages", type="int", default=100, help="number of messages to send (default %default)")
+
 opts, args = parser.parse_args()
 
 if __name__ == "__main__":
