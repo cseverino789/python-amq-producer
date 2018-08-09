@@ -42,11 +42,12 @@ class Send(MessagingHandler):
             msg = Message(id=(self.sent+1), body={'sequence':(self.sent+1)})
             event.sender.send(msg)            
             self.sent += 1
-            print(f"Sent Message: {self.sent}")
-            time.sleep(1)
 
     def on_accepted(self, event):
         self.confirmed += 1
+
+        print(f"Sent Message accepted: {self.sent}")
+        time.sleep(1)
         if self.confirmed == self.total:
             print("all messages confirmed")
             event.connection.close()
@@ -76,5 +77,6 @@ if __name__ == "__main__":
     try:
         Container(Send(addr, opts.messages)).run()
         print("Sends complete sleeping!")
-        time.sleep(360)
+        while true:
+            time.sleep(5)
     except KeyboardInterrupt: pass
