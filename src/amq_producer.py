@@ -27,37 +27,66 @@ from proton.handlers import MessagingHandler
 from proton.reactor import Container
 
 class Send(MessagingHandler):
-    def __init__(self, url, messages):
+    def __init__(self, url, messages, total, payload):
         super(Send, self).__init__()
         self.url = url
         self.sent = 0
         self.confirmed = 0
-        self.total = messages
+        self.burst_sent = 0
+        self.burst_count = messages
+        self.total = total
+        self.payload = payload
 
     def on_start(self, event):
         event.container.create_sender(self.url)
 
     def on_sendable(self, event):
-        while event.sender.credit and self.sent < self.total:
-            msg = Message(id=(self.sent+1), body={'sequence':(self.sent+1)})
-            event.sender.send(msg)            
+        self.burst_sent = 0
+
+        if self.sent >= self.total:
+            print("-------- Send Complete! --------")
+            event.connection.close()
+            return
+
+        while event.sender.credit and self.burst_sent < self.burst_count:
+            bdy = {'sequence':(self.sent+1), 'payload':str(payload)}
+            print(f"Sending Message: {bdy}")
+
+            msg = Message(id=(self.sent+1), body=bdy)
+            event.sender.send(msg)
             self.sent += 1
+            self.burst_sent += 1
+        time.sleep(.5)
+
 
     def on_accepted(self, event):
         self.confirmed += 1
-
-        print(f"Sent Message accepted: {self.sent}")        
-        if self.confirmed == self.total:
-            print("all messages confirmed")
+        
+        print(f"Message accepted: {self.confirmed} total: {self.total}")
+        if self.confirmed >= self.total:
+            print("-------- All messages confirmed! --------")
             event.connection.close()
 
+    def on_settled(self, event):
+        #print("Settled")
+        pass
+
+    def on_session_error(self, event):
+        print("Session Error")
+
+    def on_rejected(self, event):
+        print("Rejected")
+
     def on_disconnected(self, event):
-        self.sent = self.confirmed
+        print("Disconnected")
+        #self.sent = self.confirmed
 
 parser = optparse.OptionParser(usage="usage: %prog [options]",
                                description="Send messages to the supplied address.")
 parser.add_option("-a", "--address", help="address to which messages are sent (default %default)")
-parser.add_option("-m", "--messages", type="int", default=10, help="number of messages to send (default %default)")
+parser.add_option("-m", "--messages", type="int", default=10, help="number of messages to send at a time (default %default)")
+parser.add_option("-t", "--total", type="int", default=100, help="Total Number of messages to send")
+parser.add_option("-p", "--payload", type="string", default="", help="Payload string")
 
 opts, args = parser.parse_args()
 
@@ -73,9 +102,11 @@ if __name__ == "__main__":
         print("Warning: Using Default address")
 
     msgs = os.environ.get("MESSAGE_COUNT", default=opts.messages)
+    total = os.environ.get("MESSAGE_TOTAL", default=opts.total)
+    payload = os.environ.get("MESSAGE_PAYLOAD", default=opts.payload)
 
     try:
-        Container(Send(addr, msgs)).run()
+        Container(Send(addr, msgs, total, payload)).run()
         print("Sends complete sleeping!")
         while True:
             time.sleep(5)
