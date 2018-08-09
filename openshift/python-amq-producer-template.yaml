@@ -1,0 +1,160 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: python-amq-producer
+  annotations:
+    openshift.io/display-name: "AMQ Python Producer"
+    iconClass: icon-python
+    description: Application template for python amq client using proton.
+labels:
+  app: python-amq-producer
+
+parameters:
+- description: Github trigger secret
+  from: '[a-zA-Z0-9]{8}'
+  name: GITHUB_TRIGGER_SECRET
+  generate: expression
+- description: Generic trigger secret
+  from: '[a-zA-Z0-9]{8}'
+  name: GENERIC_TRIGGER_SECRET
+  generate: expression
+
+objects:
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftWebConsole
+    creationTimestamp: null
+    labels:
+      app: python-amq-producer
+    name: python-amq-producer
+  spec:
+    nodeSelector: null
+    output:
+      to:
+        kind: ImageStreamTag
+        name: python-amq-producer:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: /src
+      git:
+        ref: master
+        uri: https://github.com/cseverino789/python-amq-producer.git
+      type: Git
+    strategy:
+      sourceStrategy:
+        env:
+        - name: APP_FILE
+          value: /opt/app-root/src/amq_producer.py
+        from:
+          kind: ImageStreamTag
+          name: python:3.6
+          namespace: openshift
+      type: Source
+    triggers:
+    - imageChange: {}
+      type: ImageChange
+    - type: ConfigChange
+    - generic:
+        secret: ${GENERIC_TRIGGER_SECRET}
+      type: Generic
+    - github:
+        secret: ${GITHUB_TRIGGER_SECRET}
+      type: GitHub
+  status:
+    lastVersion: 0
+
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftWebConsole
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: python-amq-producer
+    name: python-amq-producer
+  spec:
+    lookupPolicy:
+      local: false
+  status:
+    dockerImageRepository: ""
+
+- apiVersion: v1
+  kind: DeploymentConfig
+  metadata:
+    annotations:
+      openshift.io/generated-by: OpenShiftWebConsole
+    creationTimestamp: null
+    generation: 1
+    labels:
+      app: python-amq-producer
+    name: python-amq-producer
+  spec:
+    replicas: 0
+    selector:
+      deploymentconfig: python-amq-producer
+    strategy:
+      activeDeadlineSeconds: 21600
+      resources: {}
+      rollingParams:
+        intervalSeconds: 1
+        maxSurge: 25%
+        maxUnavailable: 25%
+        timeoutSeconds: 600
+        updatePeriodSeconds: 1
+      type: Rolling
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: python-amq-client
+          deploymentconfig: python-amq-producer
+      spec:
+        containers:
+        - env:
+          - name: AMQP_BROKER
+            value: broker-amq-amqp
+          - name: AMQP_ADDRESS
+            value: examples
+          - name: MESSAGE_COUNT
+            value: "1"
+          - name: MESSAGE_TOTAL
+            value: "5"
+          - name: MESSAGE_PAYLOAD
+            value: From deployment
+          name: python-amq-client
+          ports:
+          - containerPort: 8080
+            protocol: TCP
+          resources: {}
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+        dnsPolicy: ClusterFirst
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+    test: false
+    triggers:
+    - imageChangeParams:
+        automatic: true
+        containerNames:
+        - python-amq-client
+        from:
+          kind: ImageStreamTag
+          name: python-amq-client:latest
+          namespace: my-test-project
+      type: ImageChange
+    - type: ConfigChange
+  status:
+    availableReplicas: 0
+    latestVersion: 0
+    observedGeneration: 0
+    replicas: 0
+    unavailableReplicas: 0
+    updatedReplicas: 0
