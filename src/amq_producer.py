@@ -22,6 +22,7 @@ from __future__ import print_function, unicode_literals
 import optparse
 import os
 import time
+import socket
 from proton import Message
 from proton.handlers import MessagingHandler
 from proton.reactor import Container
@@ -36,6 +37,8 @@ class Send(MessagingHandler):
         self.burst_count = int(messages)
         self.total = int(total)
         self.payload = payload
+        self.hostname = socket.gethostbyname()
+
 
     def on_start(self, event):
         event.container.create_sender(self.url)
@@ -49,7 +52,7 @@ class Send(MessagingHandler):
             return
 
         while event.sender.credit and self.burst_sent < self.burst_count:
-            bdy = {'sequence':(self.sent+1), 'payload':str(payload)}
+            bdy = {'sequence':(self.sent+1),'hostname':str(self.hostname), 'payload':str(payload)}
             print(f"Sending Message: {bdy}")
 
             msg = Message(id=(self.sent+1), body=bdy)
