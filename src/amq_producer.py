@@ -77,6 +77,6 @@ if __name__ == "__main__":
     try:
         Container(Send(addr, opts.messages)).run()
         print("Sends complete sleeping!")
-        while true:
+        while True:
             time.sleep(5)
     except KeyboardInterrupt: pass
