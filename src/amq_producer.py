@@ -46,8 +46,7 @@ class Send(MessagingHandler):
     def on_accepted(self, event):
         self.confirmed += 1
 
-        print(f"Sent Message accepted: {self.sent}")
-        time.sleep(1)
+        print(f"Sent Message accepted: {self.sent}")        
         if self.confirmed == self.total:
             print("all messages confirmed")
             event.connection.close()
@@ -58,7 +57,7 @@ class Send(MessagingHandler):
 parser = optparse.OptionParser(usage="usage: %prog [options]",
                                description="Send messages to the supplied address.")
 parser.add_option("-a", "--address", help="address to which messages are sent (default %default)")
-parser.add_option("-m", "--messages", type="int", default=100, help="number of messages to send (default %default)")
+parser.add_option("-m", "--messages", type="int", default=10, help="number of messages to send (default %default)")
 
 opts, args = parser.parse_args()
 
@@ -72,10 +71,11 @@ if __name__ == "__main__":
         addr = "{0}:5672/{1}".format(os.environ["AMQP_BROKER"], os.environ["AMQP_ADDRESS"])
     else:
         print("Warning: Using Default address")
-        
+
+    msgs = os.environ.get("MESSAGE_COUNT", default=opts.messages)
 
     try:
-        Container(Send(addr, opts.messages)).run()
+        Container(Send(addr, msgs)).run()
         print("Sends complete sleeping!")
         while True:
             time.sleep(5)
