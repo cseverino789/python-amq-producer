@@ -37,7 +37,7 @@ class Send(MessagingHandler):
         self.burst_count = int(messages)
         self.total = int(total)
         self.payload = payload
-        self.hostname = socket.gethostbyname()
+        self.hostname = socket.gethostname()
 
 
     def on_start(self, event):
