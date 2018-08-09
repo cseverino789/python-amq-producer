@@ -33,8 +33,8 @@ class Send(MessagingHandler):
         self.sent = 0
         self.confirmed = 0
         self.burst_sent = 0
-        self.burst_count = messages
-        self.total = total
+        self.burst_count = int(messages)
+        self.total = int(total)
         self.payload = payload
 
     def on_start(self, event):
