@@ -73,5 +73,5 @@ if __name__ == "__main__":
         
 
     try:
-        Container(Send(opts.address, opts.messages)).run()
+        Container(Send(addr, opts.messages)).run()
     except KeyboardInterrupt: pass
