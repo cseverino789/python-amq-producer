@@ -87,9 +87,9 @@ class Send(MessagingHandler):
 parser = optparse.OptionParser(usage="usage: %prog [options]",
                                description="Send messages to the supplied address.")
 parser.add_option("-a", "--address", help="address to which messages are sent (default %default)")
-parser.add_option("-m", "--messages", type="int", default=10, help="number of messages to send at a time (default %default)")
-parser.add_option("-t", "--total", type="int", default=100, help="Total Number of messages to send")
-parser.add_option("-p", "--payload", type="string", default="", help="Payload string")
+parser.add_option("-m", "--messages", type="int", help="number of messages to send at a time (default %default)")
+parser.add_option("-t", "--total", type="int", help="Total Number of messages to send")
+parser.add_option("-p", "--payload", type="string", help="Payload string")
 
 opts, args = parser.parse_args()
 
@@ -104,9 +104,9 @@ if __name__ == "__main__":
     else:
         print("Warning: Using Default address")
 
-    msgs = os.environ.get("MESSAGE_COUNT", default=opts.messages)
-    total = os.environ.get("MESSAGE_TOTAL", default=opts.total)
-    payload = os.environ.get("MESSAGE_PAYLOAD", default=opts.payload)
+    msgs = opts.messages if opts.messages else os.environ.get("MESSAGE_COUNT", default=10)
+    total = opts.total if opts.total else os.environ.get("MESSAGE_TOTAL", default=100)
+    payload = opts.payload if opts.payload else os.environ.get("MESSAGE_PAYLOAD", default="")
 
     try:
         Container(Send(addr, msgs, total, payload)).run()
