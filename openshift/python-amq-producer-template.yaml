@@ -112,7 +112,7 @@ objects:
       metadata:
         creationTimestamp: null
         labels:
-          app: python-amq-client
+          app: python-amq-producer
           deploymentconfig: python-amq-producer
       spec:
         containers:
@@ -127,7 +127,7 @@ objects:
             value: "5"
           - name: MESSAGE_PAYLOAD
             value: From deployment
-          name: python-amq-client
+          name: python-amq-producer
           ports:
           - containerPort: 8080
             protocol: TCP
@@ -144,10 +144,10 @@ objects:
     - imageChangeParams:
         automatic: true
         containerNames:
-        - python-amq-client
+        - python-amq-producer
         from:
           kind: ImageStreamTag
-          name: python-amq-client:latest
+          name: python-amq-producer:latest
           namespace: my-test-project
       type: ImageChange
     - type: ConfigChange
